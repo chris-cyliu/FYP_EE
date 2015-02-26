@@ -1,6 +1,6 @@
 package common
 
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeZone, DateTime}
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.Play.current
@@ -8,11 +8,11 @@ import play.api.Play.current
 /**
  * Created by fafa on 25/2/15.
  */
-case class Record(date:DateTime,device_id:Int, v_type:Int, value:Double)
+case class Record(device_id:Int, v_type:Int, value:Double,date:DateTime = DateTime.now(DateTimeZone.UTC))
 
 /**
  * Encode string format
- * {linux_timestamp};{device_id};{v_type};{value}
+ * {device_id};{v_type};{value}
  */
 object Record{
 
@@ -24,10 +24,10 @@ object Record{
 
   def apply(encode_str:String):Record = {
     val fields = encode_str.split(";")
-    if(fields.size != 4 ){
-      throw new Exception("Message fields not equal to 4")
+    if(fields.size != 3 ){
+      throw new Exception("Message fields not equal to 3")
     }
-    Record(new DateTime(fields(0).toLong), fields(1).toInt, fields(2).toInt, fields(3).toDouble)
+    Record(fields(0).toInt, fields(1).toInt, fields(2).toDouble)
   }
 
   /** json serialization

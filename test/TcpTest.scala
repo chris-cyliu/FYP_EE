@@ -10,7 +10,7 @@ object TcpTest {
     val socket = new Socket("localhost",5858)
     val out = new PrintStream(socket.getOutputStream)
 
-    out.println("addRecord:1424919197;1;1;1.0")
+    out.println("addRecord:1;1;1.0")
     out.flush()
     out.close()
     println("succesfully ")

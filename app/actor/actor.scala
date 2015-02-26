@@ -51,9 +51,11 @@ object WebSocketActor{
  * Actor for handle websocket action
  * @param out
  */
-class WebSocketActor(out:ActorRef) extends Actor {
+class WebSocketActor(out:ActorRef) extends Actor with ActorLogging{
 
   context.actorSelection("/user/"+Constant.actor_name_wsr) ! NewBrowser
+
+  log.info("WS openned preparing")
 
   override def receive: Actor.Receive = {
 
@@ -74,7 +76,7 @@ class TCPServerActor extends Actor with ActorLogging{
     import Tcp._
     import context.system
 
-    IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", Constant.tcp_port))
+    IO(Tcp) ! Bind(self, new InetSocketAddress("0.0.0.0", Constant.tcp_port))
 
     override def receive: Actor.Receive = {
       case b @ Bound(localAddress) =>
