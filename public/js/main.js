@@ -68,7 +68,9 @@ $(function(){
         },
 
         title : {
-            text : 'Temperature'
+            style: {
+                display: 'none'
+            }
         },
 
         exporting: {

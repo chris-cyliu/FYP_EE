@@ -12,7 +12,7 @@ object TCPMessage{
   def apply(message:String):TCPMessage = {
     val fields = message.split(":")
     if (fields.size != 2) {
-      throw new Exception("Unknow tcp message")
+      throw new Exception(s"Unknow tcp message: $message")
     }
     TCPMessage(fields(0), fields(1))
   }
