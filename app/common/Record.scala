@@ -1,0 +1,83 @@
+package common
+
+import org.joda.time.DateTime
+import play.api.db.DB
+import play.api.libs.json._
+import play.api.Play.current
+
+/**
+ * Created by fafa on 25/2/15.
+ */
+case class Record(date:DateTime,device_id:Int, v_type:Int, value:Double)
+
+/**
+ * Encode string format
+ * {linux_timestamp};{device_id};{v_type};{value}
+ */
+object Record{
+
+  val ds = DB.getDataSource()
+
+  val table_name = "record"
+
+  createIfNotExist
+
+  def apply(encode_str:String):Record = {
+    val fields = encode_str.split(";")
+    if(fields.size != 4 ){
+      throw new Exception("Message fields not equal to 4")
+    }
+    Record(new DateTime(fields(0).toLong), fields(1).toInt, fields(2).toInt, fields(3).toDouble)
+  }
+
+  /** json serialization
+    *
+    */
+  implicit val recordWrite  = new Writes[Record]{
+   def writes(record:Record) = Json.obj(
+    "date" -> record.date.getMillis(),
+    "device_id" -> record.device_id,
+    "v_type" ->record.v_type,
+    "value" -> record.value
+   )
+  }
+
+  /**
+   * Try to insert data to the database
+   * @param record
+   */
+  def insertToDb(record:Record): Unit = {
+    //add to data base
+    val conn = ds.getConnection()
+    val stmt = conn.prepareStatement(s"INSERT INTO $table_name VALUES (?,?,?,?)")
+    try{
+      stmt.setDate(1,new java.sql.Date(record.date.getMillis))
+      stmt.setInt(2,record.device_id)
+      stmt.setInt(3,record.v_type)
+      stmt.setDouble(4,record.value)
+      stmt.executeUpdate()
+      conn.commit()
+    }catch{
+      case e:Exception =>
+        throw e
+    }finally{
+      stmt.close()
+      conn.close()
+    }
+  }
+
+  def createIfNotExist() = {
+    val conn = ds.getConnection()
+    val stmt = conn.createStatement()
+    try{
+      stmt.execute(s"CREATE TABLE if not exists $table_name (date timestamp , device_id INTEGER , v_type INTEGER,value DOUBLE)")
+      conn.commit()
+    }catch {
+      case e: Exception =>
+        throw e
+    }finally {
+      stmt.close
+      conn.close
+    }
+  }
+}
