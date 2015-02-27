@@ -8,3 +8,5 @@ import common.Record
 case class NewRecord(record:Record)
 
 case class NewBrowser()
+
+case class QuitBrowser()

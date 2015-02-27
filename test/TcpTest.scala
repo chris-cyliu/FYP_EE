@@ -12,7 +12,8 @@ object TcpTest {
 
     while(true) {
       val value = Math.random()
-      out.println(s"addRecord:1;1;$value")
+      val vtype = if(Math.random() >0.5) 1 else 0
+      out.println(s"addRecord:1;$vtype;$value")
       out.flush()
       Thread.sleep(1000)
     }
