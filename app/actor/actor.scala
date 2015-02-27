@@ -30,17 +30,20 @@ class DatabaseActor extends Actor with ActorLogging{
 object WebSocketRouterActor{
   def props = Props(new WebSocketRouterActor())
 }
-class WebSocketRouterActor extends Actor {
+class WebSocketRouterActor extends Actor with ActorLogging{
 
-  val ws_list = collection.mutable.Buffer[ActorRef]()
+  val ws_list = collection.mutable.Set[ActorRef]()
 
   override def receive: Actor.Receive = {
     case NewBrowser =>
       ws_list += sender()
+      log.info("WS Router receive A Browser join , number of listening browser : "+ws_list.size)
     case m:NewRecord =>
       //notice all ws
       ws_list.map(_ ! m)
-      //TODO: disconnect ws
+    case QuitBrowser =>
+      ws_list -= sender()
+      log.info("A Browser quit, number of remain browser : "+ws_list.size)
 
   }
 }
@@ -53,9 +56,9 @@ object WebSocketActor{
  */
 class WebSocketActor(out:ActorRef) extends Actor with ActorLogging{
 
-  context.actorSelection("/user/"+Constant.actor_name_wsr) ! NewBrowser
+  val router = context.actorSelection("/user/"+Constant.actor_name_wsr)
 
-  log.info("WS openned preparing")
+  router ! NewBrowser
 
   override def receive: Actor.Receive = {
 
@@ -63,6 +66,10 @@ class WebSocketActor(out:ActorRef) extends Actor with ActorLogging{
     case NewRecord(record) =>
       out ! Json.obj("event"->"push_data","data"->Json.toJson(record))
     case _ =>
+  }
+
+  override def postStop(): Unit = {
+    router ! QuitBrowser
   }
 }
 
@@ -85,6 +92,7 @@ class TCPServerActor extends Actor with ActorLogging{
       case CommandFailed(_: Bind) => context stop self
 
       case c @ Connected(remote, local) =>
+        log.info(s"A logger connected")
         val handler = context.actorOf(TCPMessageActor.props(sender()))
         val connection = sender()
         connection ! Register(handler)
