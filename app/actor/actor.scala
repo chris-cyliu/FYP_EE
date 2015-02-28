@@ -83,10 +83,11 @@ object UDPMessageActor{
 class UDPMessageActor extends Actor {
 
   import context.system
+
   IO(Udp) ! Udp.Bind(self, new InetSocketAddress("0.0.0.0", 5858))
 
-  val taskActor = context.actorSelection("/user/"+Constant.actor_name_db)::
-    context.actorSelection("/user/"+Constant.actor_name_wsr)::
+  val taskActor = context.actorSelection("/user/" + Constant.actor_name_db) ::
+    context.actorSelection("/user/" + Constant.actor_name_wsr) ::
     Nil
 
   override def receive = {
@@ -99,65 +100,71 @@ class UDPMessageActor extends Actor {
       val m = ArdiunoMessage(data.decodeString("US-ASCII"))
       m.event match {
         case ArdiunoMessage.event_add_record =>
-          taskActor.map({ _ ! NewRecord(Record(m.data)) })
+          taskActor.map({
+            _ ! NewRecord(Record(m.data))
+          })
       }
-    case Udp.Unbind  => socket ! Udp.Unbind
+    case Udp.Unbind => socket ! Udp.Unbind
     case Udp.Unbound => context.stop(self)
   }
+}
 
 
 
-  object TCPServerActor{
-    def props = Props(new TCPServerActor())
-  }
-  /**
-   * Handle TCP connection request
-   */
-  class TCPServerActor extends Actor with ActorLogging{
-    import Tcp._
-    import context.system
+object TCPServerActor{
+  def props = Props(new TCPServerActor())
+}
+/**
+ * Handle TCP connection request
+ */
+class TCPServerActor extends Actor with ActorLogging{
+  import Tcp._
+  import context.system
 
-    IO(Tcp) ! Bind(self, new InetSocketAddress("0.0.0.0", Constant.tcp_port))
+  IO(Tcp) ! Bind(self, new InetSocketAddress("0.0.0.0", Constant.tcp_port))
 
-    override def receive: Actor.Receive = {
-      case b @ Bound(localAddress) =>
-        log.info(s"tcp: $localAddress try to connect")
+  override def receive: Actor.Receive = {
+    case b @ Bound(localAddress) =>
+      log.info(s"tcp: $localAddress try to connect")
 
-      case CommandFailed(_: Bind) => context stop self
+    case CommandFailed(_: Bind) => context stop self
 
-      case c @ Connected(remote, local) =>
-        log.info(s"A logger connected")
-        val handler = context.actorOf(TCPMessageActor.props(sender()))
-        val connection = sender()
-        connection ! Register(handler)
-    }
-
-  }
-
-
-  /**
-   * TCP Message Handler
-   */
-  object TCPMessageActor{
-    def props(connection:ActorRef) = Props(new TCPMessageActor(connection))
+    case c @ Connected(remote, local) =>
+      log.info(s"A logger connected")
+      val handler = context.actorOf(TCPMessageActor.props(sender()))
+      val connection = sender()
+      connection ! Register(handler)
   }
 
-  class TCPMessageActor(connection:ActorRef) extends Actor {
+}
 
-    import Tcp._
 
-    context watch connection
+/**
+ * TCP Message Handler
+ */
+object TCPMessageActor{
+  def props(connection:ActorRef) = Props(new TCPMessageActor(connection))
+}
 
-    val taskActor = context.actorSelection("/user/"+Constant.actor_name_db)::
-      context.actorSelection("/user/"+Constant.actor_name_wsr)::
-      Nil
+class TCPMessageActor(connection:ActorRef) extends Actor {
 
-    override def receive: Actor.Receive = {
-      case Received(data) =>
-        val m = TCPMessage(data.decodeString("US-ASCII"))
-        m.event match {
-          case TCPMessage.event_add_record =>
-            taskActor.map({ _ ! NewRecord(Record(m.data)) })
-        }
+  import Tcp._
 
-    }
+  context watch connection
+
+  val taskActor = context.actorSelection("/user/" + Constant.actor_name_db) ::
+    context.actorSelection("/user/" + Constant.actor_name_wsr) ::
+    Nil
+
+  override def receive: Actor.Receive = {
+    case Received(data) =>
+      val m = ArdiunoMessage(data.decodeString("US-ASCII"))
+      m.event match {
+        case ArdiunoMessage.event_add_record =>
+          taskActor.map({
+            _ ! NewRecord(Record(m.data))
+          })
+      }
+
+  }
+}

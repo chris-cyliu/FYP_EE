@@ -70,7 +70,7 @@ object Record{
     val conn = ds.getConnection()
     val stmt = conn.createStatement()
     try{
-      stmt.execute(s"CREATE TABLE if not exists $table_name (date timestamp , device_id INTEGER , v_type INTEGER,value DOUBLE)")
+      stmt.execute(s"CREATE TABLE if not exists $table_name (date timestamp , device_id INTEGER , v_type INTEGER,value DOUBLE , primary key(date , device_id , v_type))")
       conn.commit()
     }catch {
       case e: Exception =>

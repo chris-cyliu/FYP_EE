@@ -32,7 +32,6 @@ object UdpTest {
       val msg = s"addRecord:1;$vtype;$value".getBytes("US-ASCII")
       val packet:DatagramPacket = new DatagramPacket(msg,msg.length,ia,5858)
       socket.send(packet)
-      Thread.sleep(1000)
     }
   }
 
