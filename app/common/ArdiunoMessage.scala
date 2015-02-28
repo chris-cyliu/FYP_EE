@@ -3,17 +3,17 @@ package common
 /**
  * Created by fafa on 26/2/15.
  */
-case class TCPMessage(event:String,data:String)
+case class ArdiunoMessage(event:String,data:String)
 
-object TCPMessage{
+object ArdiunoMessage{
 
   val event_add_record = "addRecord"
 
-  def apply(message:String):TCPMessage = {
+  def apply(message:String):ArdiunoMessage = {
     val fields = message.split(":")
     if (fields.size != 2) {
       throw new Exception(s"Unknow tcp message: $message")
     }
-    TCPMessage(fields(0), fields(1))
+    ArdiunoMessage(fields(0), fields(1))
   }
 }

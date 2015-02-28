@@ -2,8 +2,8 @@ package actor
 
 import java.net.InetSocketAddress
 import akka.actor._
-import akka.io.{IO, Tcp}
-import common.{TCPMessage, Constant, Record}
+import akka.io.{Udp, IO, Tcp}
+import common.{ArdiunoMessage, Constant, Record}
 import play.api.libs.json.Json
 
 /**
@@ -73,13 +73,47 @@ class WebSocketActor(out:ActorRef) extends Actor with ActorLogging{
   }
 }
 
-object TCPServerActor{
-  def props = Props(new TCPServerActor())
-}
 /**
- * Handle TCP connection request
+ * UDP Message Handler
  */
-class TCPServerActor extends Actor with ActorLogging{
+object UDPMessageActor{
+  def props = Props(new UDPMessageActor)
+}
+
+class UDPMessageActor extends Actor {
+
+  import context.system
+  IO(Udp) ! Udp.Bind(self, new InetSocketAddress("0.0.0.0", 5858))
+
+  val taskActor = context.actorSelection("/user/"+Constant.actor_name_db)::
+    context.actorSelection("/user/"+Constant.actor_name_wsr)::
+    Nil
+
+  override def receive = {
+    case Udp.Bound(local) =>
+      context.become(ready(sender()))
+  }
+
+  def ready(socket: ActorRef): Receive = {
+    case Udp.Received(data, remote) =>
+      val m = ArdiunoMessage(data.decodeString("US-ASCII"))
+      m.event match {
+        case ArdiunoMessage.event_add_record =>
+          taskActor.map({ _ ! NewRecord(Record(m.data)) })
+      }
+    case Udp.Unbind  => socket ! Udp.Unbind
+    case Udp.Unbound => context.stop(self)
+  }
+
+
+
+  object TCPServerActor{
+    def props = Props(new TCPServerActor())
+  }
+  /**
+   * Handle TCP connection request
+   */
+  class TCPServerActor extends Actor with ActorLogging{
     import Tcp._
     import context.system
 
@@ -98,33 +132,32 @@ class TCPServerActor extends Actor with ActorLogging{
         connection ! Register(handler)
     }
 
-}
-
-
-/**
- * TCP Message Handler
- */
-object TCPMessageActor{
-  def props(connection:ActorRef) = Props(new TCPMessageActor(connection))
-}
-
-class TCPMessageActor(connection:ActorRef) extends Actor {
-
-  import Tcp._
-
-  context watch connection
-
-  val taskActor = context.actorSelection("/user/"+Constant.actor_name_db)::
-    context.actorSelection("/user/"+Constant.actor_name_wsr)::
-    Nil
-
-  override def receive: Actor.Receive = {
-    case Received(data) =>
-      val m = TCPMessage(data.decodeString("US-ASCII"))
-      m.event match {
-        case TCPMessage.event_add_record =>
-          taskActor.map({ _ ! NewRecord(Record(m.data)) })
-      }
-
   }
-}
+
+
+  /**
+   * TCP Message Handler
+   */
+  object TCPMessageActor{
+    def props(connection:ActorRef) = Props(new TCPMessageActor(connection))
+  }
+
+  class TCPMessageActor(connection:ActorRef) extends Actor {
+
+    import Tcp._
+
+    context watch connection
+
+    val taskActor = context.actorSelection("/user/"+Constant.actor_name_db)::
+      context.actorSelection("/user/"+Constant.actor_name_wsr)::
+      Nil
+
+    override def receive: Actor.Receive = {
+      case Received(data) =>
+        val m = TCPMessage(data.decodeString("US-ASCII"))
+        m.event match {
+          case TCPMessage.event_add_record =>
+            taskActor.map({ _ ! NewRecord(Record(m.data)) })
+        }
+
+    }
