@@ -68,63 +68,47 @@ var update_metric = function(data){
     })
 }
 
-Highcharts.setOptions({
-    global : {
-        useUTC : false
+
+var Query_module = function(date_from_container , date_to_container , value_type_radio_name ,table_container, query_button){
+
+    var current_table = null;
+    var get_and_verify_input = function(){
+        try {
+            var from = date_from_container.date().toDate().getTime();
+            var to = date_to_container.date().toDate().getTime();
+            var value_type = $("input[name=\"" + value_type_radio_name + "\"]:checked").val();
+        }catch(e){}
+
+        if(from=="undefined"){
+            from = new Date().getMilliseconds() - 24*60*60*1000;
+        }
+        if(to =="undefined"){
+            to = new Date().getMilliseconds();
+        }
+        if(value_type == "undefined"){
+            value_type == 0;
+        }
+
+        return {
+            from:from,
+            to:to,
+            value_type:value_type
+        }
+
     }
-});
-
-$(function(){
-    //init
-    var ws = new WebSocket(url_websocket);
-    ws.onmessage = function(event){
-        var m = event.data;
-        ws_message_handler(m);
-    }
-
-    for(x in chart_map)
-        chart_map[x].chart_obj = new Highcharts.StockChart({
-            chart:{
-                renderTo:chart_map[x].container
-            },
-            rangeSelector: {
-                buttons: [
-                {
-                    count: 10,
-                    type: 'second',
-                    text: '10S'
-                },
-                {
-                    count: 1,
-                    type: 'minute',
-                    text: '1M'
-                }, {
-                    count: 5,
-                    type: 'minute',
-                    text: '5M'
-                }, {
-                    type: 'all',
-                    text: 'All'
-                }],
-                inputEnabled: false,
-                selected: false
-            },
-
-            title : {
-                style: {
-                    display: 'none'
-                }
-            },
-
-            exporting: {
-                enabled: false
-            },
-
-            series : [{
-                name : 'Temperature',
-                data : [],
-                color :chart_map[x].color
-            }]
+    var click_query_handler = function(){
+        var query = get_and_verify_input();
+        if(current_table!= null){
+            current_table.destroy()
+        }
+        current_table = $(table_container).DataTable({
+            ajax: {
+                "url": base_url + "/query?from=" + query.from + "&to=" + query.to + "&value_type=" + query.value_type
+            }
         });
-})
+
+    }
+
+    $(query_button).click(click_query_handler)
+}
 

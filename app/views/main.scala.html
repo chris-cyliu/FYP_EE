@@ -14,10 +14,10 @@
         <title>Monitoring</title>
 
             <!-- Bootstrap Core CSS -->
-        <link href="/assets/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/assets/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
             <!-- Custom CSS -->
-        <link href="/assets/css/main.css" rel="stylesheet">
+        <link href="/assets/css/main.css" rel="stylesheet"/>
 
             <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
             <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -29,6 +29,12 @@
     </head>
 
     <body data-base_url="@Constant.base_url">
+        <nav class="navbar navbar-inverse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">DashBoard</a></li>
+                <li><a href="/history">Logging</a></li>
+            </ul>
+        </nav>
 
         <div id="wrapper">
             <div id="page-wrapper">
@@ -183,4 +189,66 @@
     </body>
 
 </html>
+
+<script type="text/javascript">
+Highcharts.setOptions({
+global : {
+useUTC : false
+}
+});
+
+$(function(){
+//init
+var ws = new WebSocket(url_websocket);
+ws.onmessage = function(event){
+var m = event.data;
+ws_message_handler(m);
+}
+
+for(x in chart_map)
+chart_map[x].chart_obj = new Highcharts.StockChart({
+chart:{
+renderTo:chart_map[x].container
+},
+rangeSelector: {
+buttons: [
+{
+count: 10,
+type: 'second',
+text: '10S'
+},
+{
+count: 1,
+type: 'minute',
+text: '1M'
+}, {
+count: 5,
+type: 'minute',
+text: '5M'
+}, {
+type: 'all',
+text: 'All'
+}],
+inputEnabled: false,
+selected: false
+},
+
+title : {
+style: {
+display: 'none'
+}
+},
+
+exporting: {
+enabled: false
+},
+
+series : [{
+name : 'Temperature',
+data : [],
+color :chart_map[x].color
+}]
+});
+})
+</script>
 

@@ -11,12 +11,18 @@
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <title>SB Admin 2 - Bootstrap Admin Theme</title>
+        <title>History DATA</title>
 
             <!-- Bootstrap Core CSS -->
         <link href="/assets/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
 
-            <!-- Custom CSS -->
+
+            <!-- Bootstrap datatable -->
+        <link href="/assets/css/jquery.dataTables.min.css" rel="stylesheet">
+
+
+        <!-- Custom CSS -->
         <link href="/assets/css/main.css" rel="stylesheet">
 
             <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -30,157 +36,130 @@
 
     <body data-base_url="@Constant.base_url">
 
+        <nav class="navbar navbar-inverse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">DashBoard</a></li>
+                <li><a href="/history">Logging</a></li>
+            </ul>
+        </nav>
+
         <div id="wrapper">
             <div id="page-wrapper">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h1 class="page-header">Dashboard</h1>
+                        <h1 class="page-header">Logging</h1>
                     </div>
                         <!-- /.col-lg-12 -->
                 </div>
                     <!-- /.row -->
                 <div class="row">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="panel panel-primary">
-                            <div class="panel-heading">
-                                <div class="row">
-                                    <div class="col-xs-3">
-                                        <i class="fa fa-comments fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-9 text-right">
-                                        <div class="huge">26</div>
-                                        <div>New Comments!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="panel panel-green">
-                            <div class="panel-heading">
-                                <div class="row">
-                                    <div class="col-xs-3">
-                                        <i class="fa fa-tasks fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-9 text-right">
-                                        <div class="huge">12</div>
-                                        <div>New Tasks!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="panel panel-yellow">
-                            <div class="panel-heading">
-                                <div class="row">
-                                    <div class="col-xs-3">
-                                        <i class="fa fa-shopping-cart fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-9 text-right">
-                                        <div class="huge">124</div>
-                                        <div>New Orders!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="panel panel-red">
-                            <div class="panel-heading">
-                                <div class="row">
-                                    <div class="col-xs-3">
-                                        <i class="fa fa-support fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-9 text-right">
-                                        <div class="huge">13</div>
-                                        <div>Support Tickets!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
-                        </div>
+                    <div class="col-lg-12">
+                        <h3>From:</h3>
                     </div>
                 </div>
-                    <!-- /.row -->
+
                 <div class="row">
-                    <div class="col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <i class="fa fa-bar-chart-o fa-fw"></i> Temperature
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='from_date_picker'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                                </span>
                             </div>
-                                <!-- /.panel-heading -->
-                            <div class="panel-body">
-                                <div id="temperature_chart" style="height: 300px"></div>
-                            </div>
-                                <!-- /.panel-body -->
                         </div>
-                            <!-- /.panel -->
-                        
                     </div>
-
-                    <div class="col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <i class="fa fa-bar-chart-o fa-fw"></i> Humanity
-                            </div>
-                                <!-- /.panel-heading -->
-                            <div class="panel-body">
-                                <div id="humanity_chart" style="height: 300px"></div>
-                            </div>
-                                <!-- /.panel-body -->
-                        </div>
-                            <!-- /.panel -->
-
-                    </div>
-                        <!-- /.col-lg-4 -->
                 </div>
-                    <!-- /.row -->
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h3>To:</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <div class='input-group date' id='to_date_picker'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h3>Data type:</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class='col-sm-6'>
+                        <label class="radio-inline">
+                            <input type="radio" name="value_type" value="0"> Humanity
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="value_type" value="1"> Temperature
+                        </label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class='col-sm-6'>
+                        <div class="pull-right">
+                            <button type="button" id="button_query" class="btn btn-primary">Query</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- datatable -->
+                <div class="row">
+                    <table class="display" id = "table_container">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
             </div>
                 <!-- /#page-wrapper -->
-
         </div>
             <!-- /#wrapper -->
 
             <!-- jQuery -->
         <script src="/assets/lib/jquery.min.js"></script>
+        <script src="/assets/js/moment.min.js"></script>
 
             <!-- Bootstrap Core JavaScript -->
         <script src="/assets/lib/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/assets/js/bootstrap-datetimepicker.min.js"></script>
 
-        <script src="/assets/lib/highstock/js/highstock.js"></script>
-        <script src="/assets/lib/highstock/js/modules/exporting.js"></script>
+        <script src="/assets/js/jquery.dataTables.js"></script>
             <!-- Custom Theme JavaScript -->
         <script src="/assets/js/main.js"></script>
+
 
     </body>
 
 </html>
+
+<script type="text/javascript">
+    var from_container = $("#from_date_picker" ).get(0);
+    var to_container = $("#to_date_picker" ).get(0);
+    var table_container = $("#table_container" ).get(0);
+    var query_button = $("#button_query" ).get(0);
+
+    $(function(){
+        $(from_container ).datetimepicker();
+        $(to_container ).datetimepicker();
+        from_container = $(from_container ).data('DateTimePicker');
+        to_container = $(to_container ).data('DateTimePicker');
+
+        Query_module(from_container,to_container,"value_type",table_container,query_button) ;
+    })
+</script>
 

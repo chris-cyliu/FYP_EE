@@ -1,6 +1,8 @@
 package model
 
 import java.sql.{Timestamp, Time}
+import java.text.SimpleDateFormat
+import java.util.Date
 
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Play.current
@@ -115,6 +117,26 @@ object Record{
 
   def getMax(from:DateTime , to:DateTime):Seq[(Int,Double)] = {
     getAggregator(from,to,Maximum())
+  }
+
+  def query(from:DateTime , to:DateTime, valueType:Int) = {
+    val conn = ds.getConnection();
+    val stmt = conn.prepareStatement(s"SELECT date , value from $table_name WHERE date <= ? AND date >= ? AND v_type = ?")
+    try{
+      stmt.setTimestamp(1 , new Timestamp(to.getMillis))
+      stmt.setTimestamp(2 , new Timestamp(from.getMillis))
+      stmt.setInt(3,valueType)
+      val date_format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
+      var ret = JsArray()
+      val ret_set = stmt.executeQuery()
+      while(ret_set.next()){
+        var temp = JsArray()
+        temp = temp :+ JsString(date_format.format(new Date(ret_set.getTimestamp(1).getTime)))
+        temp = temp :+ JsNumber(ret_set.getDouble(2))
+        ret = ret :+ temp
+      }
+      ret
+    }
   }
 }
 

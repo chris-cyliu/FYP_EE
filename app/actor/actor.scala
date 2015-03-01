@@ -202,12 +202,12 @@ class DBAggregatorActor extends Actor with ActorLogging{
         )
     }
 
-    def toJson(data:Seq[(Int,Double)]):JsArray ={
-      var ret = JsArray()
-      data.foreach({a=>
-        ret= ret:+JsArray(JsNumber(a._1)::JsNumber(a._2)::Nil)
+    def toJson(data:Seq[(Int,Double)]):JsValue ={
+      var ret = Json.obj()
+      data.foreach({a =>
+        ret = ret + (a._1.toString,JsNumber(a._2))
       })
-      ret
+      Json.toJson(ret)
     }
   }
   override def receive : Actor.Receive ={
