@@ -1,12 +1,18 @@
-package common
+package model
 
-import org.joda.time.{DateTimeZone, DateTime}
+import java.sql.{Timestamp, Time}
+
+import org.joda.time.{DateTime, DateTimeZone}
+import play.api.Play.current
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.Play.current
 
 /**
- * Created by fafa on 25/2/15.
+ * Bean for each sensor record
+ * @param device_id
+ * @param v_type
+ * @param value
+ * @param date
  */
 case class Record(device_id:Int, v_type:Int, value:Double,date:DateTime = DateTime.now(DateTimeZone.UTC))
 
@@ -51,7 +57,7 @@ object Record{
     val conn = ds.getConnection()
     val stmt = conn.prepareStatement(s"INSERT INTO $table_name VALUES (?,?,?,?)")
     try{
-      stmt.setDate(1,new java.sql.Date(record.date.getMillis))
+      stmt.setTimestamp(1,new java.sql.Timestamp(record.date.getMillis))
       stmt.setInt(2,record.device_id)
       stmt.setInt(3,record.v_type)
       stmt.setDouble(4,record.value)
@@ -80,4 +86,35 @@ object Record{
       conn.close
     }
   }
+
+  def getAggregator(from:DateTime , to:DateTime , op:Aggregator):Seq[(Int,Double)] = {
+    val conn = ds.getConnection()
+    val op_name = op.op_name
+    val stmt = conn.prepareStatement(s"SELECT v_type, $op_name(value) as op_value FROM $table_name WHERE date >= ? AND date <= ? GROUP BY v_type")
+    try{
+      stmt.setTimestamp(1 , new Timestamp(from.getMillis))
+      stmt.setTimestamp(2 , new Timestamp(to.getMillis))
+      val ret_set = stmt.executeQuery()
+      var ret = collection.mutable.Buffer[(Int,Double)]()
+      while(ret_set.next){
+        ret += Tuple2(ret_set.getInt("v_type"), ret_set.getDouble("op_value"))
+      }
+      ret
+    }catch {
+      case e: Exception =>
+        throw e
+    }finally {
+      stmt.close
+      conn.close
+    }
+  }
+
+  def getAverage(from:DateTime , to:DateTime):Seq[(Int,Double)] = {
+    getAggregator(from,to,Average())
+  }
+
+  def getMax(from:DateTime , to:DateTime):Seq[(Int,Double)] = {
+    getAggregator(from,to,Maximum())
+  }
 }
+

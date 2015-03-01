@@ -1,4 +1,4 @@
-package common
+package model
 
 /**
  * Created by fafa on 26/2/15.

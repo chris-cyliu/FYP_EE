@@ -31,6 +31,9 @@ var ws_message_handler = function(data) {
         case  "push_data":
             push_data_to_graph(json.data)
             break;
+        case "push_agg_data":
+            update_metric(json.data)
+            break;
         default :
             console.error("Unknown event type : "+json.event)
     }
@@ -47,6 +50,22 @@ var ws_message_handler = function(data) {
  */
 var push_data_to_graph = function(json_data){
     chart_map[json_data.v_type].chart_obj.series[0].addPoint([json_data.date,json_data.value]);
+}
+
+/**
+ * Foreach "class = metric"
+ *  get data-agg
+ *  get date-type
+ *  from input[agg][type] update
+ */
+var update_metric = function(data){
+    $(".metric").each(function(){
+        var agg = $(this).data("agg");
+        var type = $(this).data("type");
+        if(typeof data[agg][type]!="undefined"){
+            $(this).html(data[agg][type])
+        }
+    })
 }
 
 Highcharts.setOptions({

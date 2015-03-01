@@ -1,10 +1,13 @@
 package actor
 
 import java.net.InetSocketAddress
+import actor.PushAggData
 import akka.actor._
 import akka.io.{Udp, IO, Tcp}
-import common.{ArdiunoMessage, Constant, Record}
-import play.api.libs.json.Json
+import common.Constant
+import model.{ArdiunoMessage, Record}
+import org.joda.time.{DateTimeZone, DateTime}
+import play.api.libs.json._
 
 /**
  * Actor for database action
@@ -34,12 +37,17 @@ class WebSocketRouterActor extends Actor with ActorLogging{
 
   val ws_list = collection.mutable.Set[ActorRef]()
 
+  val agg_actor = context.actorSelection("/user/"+Constant.actor_name_agg)
+
   override def receive: Actor.Receive = {
     case NewBrowser =>
       ws_list += sender()
+      agg_actor ! PushAggData
       log.info("WS Router receive A Browser join , number of listening browser : "+ws_list.size)
     case m:NewRecord =>
       //notice all ws
+      ws_list.map(_ ! m)
+    case m:PushAggData =>
       ws_list.map(_ ! m)
     case QuitBrowser =>
       ws_list -= sender()
@@ -65,6 +73,8 @@ class WebSocketActor(out:ActorRef) extends Actor with ActorLogging{
     //push back record to the client
     case NewRecord(record) =>
       out ! Json.obj("event"->"push_data","data"->Json.toJson(record))
+    case PushAggData(json) =>
+      out ! Json.obj("event"->"push_agg_data","data"->json)
     case _ =>
   }
 
@@ -166,5 +176,46 @@ class TCPMessageActor(connection:ActorRef) extends Actor {
           })
       }
 
+  }
+}
+
+object DBAggregatorActor{
+  def props() = Props(new DBAggregatorActor)
+}
+/**
+ * Actor to cache aggreator
+ *
+ */
+class DBAggregatorActor extends Actor with ActorLogging{
+
+  val wsr = context.actorSelection("/user/" + Constant.actor_name_wsr)
+
+  object AggregatorData {
+
+    var data:JsObject = null
+    getData
+    def getData = {
+      data =
+        Json.obj(
+          "average"-> toJson(Record.getAverage(DateTime.now(DateTimeZone.UTC).minusHours(24) , DateTime.now(DateTimeZone.UTC))),
+          "max" -> toJson(Record.getMax(DateTime.now(DateTimeZone.UTC).minusHours(24), DateTime.now(DateTimeZone.UTC)))
+        )
+    }
+
+    def toJson(data:Seq[(Int,Double)]):JsArray ={
+      var ret = JsArray()
+      data.foreach({a=>
+        ret= ret:+JsArray(JsNumber(a._1)::JsNumber(a._2)::Nil)
+      })
+      ret
+    }
+  }
+  override def receive : Actor.Receive ={
+    case UpdateAggData =>
+      AggregatorData.getData
+      self ! PushAggData
+    case PushAggData =>
+      log.debug("Start push aggregator data")
+      wsr ! PushAggData(AggregatorData.data)
   }
 }
